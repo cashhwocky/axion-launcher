@@ -1,0 +1,221 @@
+#:import dp kivy.metrics.dp
+#:import SlideTransition kivy.uix.screenmanager.SlideTransition
+
+<AppIcon>:
+    orientation: 'vertical'
+    padding: dp(10), dp(12), dp(10), dp(4)
+    spacing: dp(6)
+    Image:
+        source: root.icon
+        size_hint_y: None
+        height: dp(48)
+        allow_stretch: True
+        keep_ratio: True
+        mipmap: True
+    Label:
+        text: root.label
+        font_size: '11sp'
+        color: 0.92, 0.92, 0.96, 1
+        shorten: True
+        shorten_from: 'right'
+        text_size: self.width, None
+        halign: 'center'
+        valign: 'top'
+
+<StyleCard>:
+    orientation: 'vertical'
+    padding: dp(14)
+    spacing: dp(8)
+    size_hint_y: None
+    height: dp(250)
+    canvas.before:
+        Color:
+            rgba: (app.accent[0], app.accent[1], app.accent[2], 0.22) if app.volume_style == root.style else app.container
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [dp(24)]
+        Color:
+            rgba: app.accent if app.volume_style == root.style else (0, 0, 0, 0)
+        Line:
+            rounded_rectangle: (self.x, self.y, self.width, self.height, dp(24))
+            width: dp(2)
+    AnchorLayout:
+        VolumeBar:
+            style: root.style
+            level: 0.6
+            compact: True
+    Label:
+        text: root.title
+        size_hint_y: None
+        height: dp(24)
+        font_size: '15sp'
+        bold: True
+        color: 1, 1, 1, 1
+    Label:
+        text: 'Selected' if app.volume_style == root.style else 'Tap to use'
+        size_hint_y: None
+        height: dp(18)
+        font_size: '12sp'
+        color: app.accent if app.volume_style == root.style else (0.7, 0.7, 0.75, 1)
+
+<HomeScreen>:
+    name: 'home'
+    FloatLayout:
+        Carousel:
+            id: pager
+            size_hint: 1, None
+            pos_hint: {'x': 0, 'top': 1}
+            height: root.height - dp(150)
+            loop: False
+            # leave room for the status bar
+            y: root.height - self.height - dp(36)
+        # dock: blurred-look search bar
+        BoxLayout:
+            size_hint: 1, None
+            height: dp(92)
+            pos_hint: {'x': 0, 'y': 0}
+            padding: dp(20), dp(16), dp(20), dp(26)
+            canvas.before:
+                # soft "frosted" layers (Kivy has no live blur, so we stack translucent shapes)
+                Color:
+                    rgba: 1, 1, 1, 0.04
+                RoundedRectangle:
+                    pos: self.x + dp(12), self.y + dp(10)
+                    size: self.width - dp(24), self.height - dp(14)
+                    radius: [dp(34)]
+                Color:
+                    rgba: app.accent[0], app.accent[1], app.accent[2], 0.16
+                RoundedRectangle:
+                    pos: self.x + dp(16), self.y + dp(16)
+                    size: self.width - dp(32), self.height - dp(26)
+                    radius: [dp(30)]
+                Color:
+                    rgba: 1, 1, 1, 0.14
+                Line:
+                    rounded_rectangle: (self.x + dp(16), self.y + dp(16), self.width - dp(32), self.height - dp(26), dp(30))
+                    width: 1
+            TextInput:
+                id: search
+                hint_text: 'Search apps'
+                multiline: False
+                background_color: 0, 0, 0, 0
+                background_normal: ''
+                background_active: ''
+                foreground_color: 1, 1, 1, 1
+                hint_text_color: 0.8, 0.8, 0.88, 0.8
+                cursor_color: app.accent
+                font_size: '16sp'
+                padding: dp(18), dp(12), dp(18), dp(8)
+                on_text: app.filter_apps(self.text)
+            Button:
+                size_hint_x: None
+                width: dp(48)
+                text: '...'
+                font_size: '20sp'
+                bold: True
+                background_normal: ''
+                background_color: 0, 0, 0, 0
+                color: app.accent
+                on_release: app.open_settings()
+
+<SettingsScreen>:
+    name: 'settings'
+    on_pre_enter: app.sync_slider(vol_test)
+    BoxLayout:
+        orientation: 'vertical'
+        padding: dp(18), dp(44), dp(18), dp(18)
+        spacing: dp(14)
+        BoxLayout:
+            size_hint_y: None
+            height: dp(48)
+            Button:
+                size_hint_x: None
+                width: dp(48)
+                text: '<'
+                font_size: '24sp'
+                bold: True
+                background_normal: ''
+                background_color: 0, 0, 0, 0
+                color: app.accent
+                on_release: app.close_settings()
+            Label:
+                text: 'Home settings'
+                font_size: '22sp'
+                bold: True
+                halign: 'left'
+                text_size: self.size
+                valign: 'middle'
+                color: 1, 1, 1, 1
+        Label:
+            text: 'Volume Styles'
+            size_hint_y: None
+            height: dp(26)
+            font_size: '14sp'
+            color: app.accent
+            halign: 'left'
+            text_size: self.size
+        BoxLayout:
+            size_hint_y: None
+            height: dp(250)
+            spacing: dp(10)
+            StyleCard:
+                style: 'aosp'
+                title: 'AOSP block'
+                on_release: app.set_style('aosp')
+            StyleCard:
+                style: 'ios'
+                title: 'iOS pill'
+                on_release: app.set_style('ios')
+            StyleCard:
+                style: 'indigo'
+                title: 'Indigo'
+                on_release: app.set_style('indigo')
+        Label:
+            text: 'Test: drag to change media volume'
+            size_hint_y: None
+            height: dp(22)
+            font_size: '13sp'
+            color: 0.75, 0.75, 0.8, 1
+            halign: 'left'
+            text_size: self.size
+        Slider:
+            id: vol_test
+            size_hint_y: None
+            height: dp(44)
+            min: 0
+            max: 1
+            value: 0.5
+            cursor_size: dp(26), dp(26)
+            value_track: True
+            value_track_color: app.accent
+            on_value: app.set_media_volume(self.value)
+        Button:
+            text: 'Set as default home app'
+            size_hint_y: None
+            height: dp(52)
+            background_normal: ''
+            background_color: app.accent
+            color: 0.07, 0.07, 0.12, 1
+            bold: True
+            on_release: app.open_home_settings()
+        Widget:
+
+FloatLayout:
+    canvas.before:
+        Color:
+            rgba: app.surface
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    ScreenManager:
+        id: sm
+        transition: SlideTransition()
+        HomeScreen:
+            id: home
+        SettingsScreen:
+            id: settings
+    VolumeBar:
+        id: vol
+        opacity: 0
+        pos: -1000, -1000
