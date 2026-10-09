@@ -1,57 +1,59 @@
 name: Build Android APK
 
 on:
-  workflow_dispatch:
   push:
     branches: [main]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-    timeout-minutes: 90
+    runs-on: ubuntu-24.04
+
     steps:
-      - name: Check out code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
 
-      - name: Set up Java 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
 
-      - name: Install system packages
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y git zip unzip autoconf libtool pkg-config \
-            zlib1g-dev libncurses-dev cmake libffi-dev libssl-dev build-essential ccache
+    - name: Install system packages
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y git zip unzip autoconf libtool pkg-config \
+          zlib1g-dev libncurses-dev cmake libffi-dev libssl-dev build-essential ccache
 
-      - name: Install Buildozer
-        run: |
-          python -m pip install --upgrade pip
-          pip install buildozer "cython<3.1"
-                  mkdir -p ~/.buildozer/android/platform/android-sdk/licenses && echo -e "\n8933bad161af4178b1185d1a37fbf41ea5269c55\nd56f5187479451eabf01fb74340295442d24e5e1\n24333f1a63b682509d3197ef7b34df34d47c6749" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
+    - name: Install Buildozer
+      run: |
+        python -m pip install --upgrade pip
+        pip install buildozer "cython<3.1"
+        mkdir -p ~/.buildozer/android/platform/android-sdk/licenses && echo -e "\n8933bad161af4178b1185d1a37fbf41ea5269c55\nd56f5187479451eabf01fb74340295442d24e5e1\n24333f1a63b682509d3197ef7b34df34d47c6749" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
 
+    - name: Cache Buildozer downloads
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.buildozer
+          .buildozer
+        key: buildozer-${{ hashFiles('buildozer.spec') }}
+        restore-keys: buildozer-
 
-      - name: Cache Buildozer downloads
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.buildozer
-            .buildozer
-          key: buildozer-${{ hashFiles('buildozer.spec') }}
-          restore-keys: buildozer-
+    - name: Clean Broken Cache Data
+      run: rm -rf ~/.buildozer/android/platform/android-sdk
 
-      - name: Build debug APK
-        run: buildozer -v android debug
+    - name: Build debug APK
+      run: buildozer -v android debug
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: axion-launcher-apk
-          path: bin/*.apk
-          if-no-files-found: error
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: axion-launcher-apk
+        path: bin/*.apk
+        if-no-files-found: error
+
