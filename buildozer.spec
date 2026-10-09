@@ -15,9 +15,9 @@ fullscreen = 0
 # Lets the launcher list every installed app (Android 11+ package visibility)
 android.permissions = QUERY_ALL_PACKAGES
 
-android.api = 34
+android.api = 35
 android.minapi = 26
-android.ndk = 25b
+android.ndk = 26b
 android.archs = arm64-v8a
 android.accept_sdk_license = True
 android.enable_androidx = True
