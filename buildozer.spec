@@ -7,7 +7,7 @@ source.dir = .
 source.include_exts = py,png,jpg,kv,atlas,xml
 version = 0.1
 
-requirements = python3,kivy==2.3.1,pyjnius,android
+requirements = python3,kivy==2.2.1,pillow,pyjnius,android
 
 orientation = portrait
 fullscreen = 0
